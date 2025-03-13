@@ -1,0 +1,46 @@
+% Temperature control PI of LM35 via MATLAB code 
+% PID controller has been discretized and manually implemented due to lack
+% of PID library in Arduino 
+% Set values of PID Constants as requiremnt to use either P, PI or PID controller
+% The set up used an arduino, an LM 35 Sensor for readings and a solid state relay to which a PWM signal is supplied to control heat source
+clc, clear 
+
+% initializing arduino variables 
+a = arduino() 
+D = "D9" ;
+A = "A0" ;
+
+% initializing variables
+mt = 400 ;
+temp_thr = 65 ;
+temp = 0 ;
+delay = 0.5 ;
+ind = 2 ;
+
+% Initializing PI variables 
+kp = 10 ;
+ki = 2.75 ;
+h = delay ;
+ek = 0 ;
+ek1 = 0 ;
+ctrlk = 0 ;
+ctrlk1 = 0 ;
+pwmi = 0
+
+tic
+while toc < mt
+    time(ind) = toc ;
+    temp(ind) = readVoltage(a, A)*100 ;
+    ek = temp_thr - temp(ind) ;
+    ctrlk = kp*(ek-ek1)+(ctrlk1*h)+(ki*ek*h) ;
+    pwm = pwmi - ctrlk ;
+    if pwm > 3.3
+        pwm = 3.3 ;
+    elseif pwm < 0
+        pwm = 0 ;
+    end
+    writePWMVoltage(a, D, pwm)
+    ind = ind + 1
+    ek1 = ek
+    ctrlk1 = ctrlk
+end
